@@ -1,0 +1,22 @@
+import logging 
+import os 
+from datetime import datetime 
+
+LOG_FILE = f"{datetime.now().strftime('%m_%d_%Y_%H_%M_%S')}.log"
+log_dir = os.path.join(os.getcwd(),"logs")
+os.makedirs(log_dir, exist_ok=True)
+LOG_PATH_FILE = os.path.join(log_dir,LOG_FILE)
+
+logging.basicConfig(
+    filename=LOG_PATH_FILE,
+    format = "[ %(asctime)s ] %(lineno)d %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
+)
+logger = logging.getLogger("autoinsight")
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(logging.Formatter(
+    "[ %(asctime)s ] %(name)s - %(levelname)s - %(message)s"
+))
+
+logger.addHandler(console_handler)

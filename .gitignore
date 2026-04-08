@@ -1,0 +1,42 @@
+# --- Python Environment ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+.venv
+
+# --- AutoML & Model Artifacts ---
+# Exclude saved models (Pickle, Joblib, H5, ONNX)
+# *.pkl
+# *.joblib
+# *.h5
+# *.onnx
+# *.pb
+*.db
+# Exclude specific AutoML output directories
+# (Common for tools like Auto-Sklearn or TPOT)
+autosklearn_output/
+autosklearn_tmp/
+tpot_exported_pipeline.py
+
+# --- Data & Logs ---
+# Never track your raw datasets
+# data/
+# *.csv
+# *.json
+# *.xlsx
+# *.parquet
+
+# Logs and tracking
+*.log
+mlruns/
+lightning_logs/
+.comet_logs/
+
+# --- IDE & OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
