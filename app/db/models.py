@@ -23,8 +23,7 @@ class Job(Base):
     status     = Column(String, default="pending")
     error_msg  = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-
-    result = relationship("Result", back_populates="job", uselist=False)
+    result = relationship("Result", back_populates="job", uselist=False, lazy="select")
 
 class Result(Base):
     __tablename__ = "result"
@@ -33,5 +32,6 @@ class Result(Base):
     quality_score = Column(Integer, default=0)
     quality_detail = Column(Text, nullable=True) 
     anomaly_report = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)    
 
+    job = relationship("Job", back_populates="result", lazy="select")
