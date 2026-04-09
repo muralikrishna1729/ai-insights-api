@@ -2,11 +2,17 @@ from fastapi import APIRouter, UploadFile, File, BackgroundTasks, HTTPException
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 from fastapi import Depends
-from app.db.models import Job
+from app.db.models import Job,Result
 from app.db.database import get_db
-from app.services.s3_service import upload_file
+from app.services.s3_service import upload_file, download_file
 from app.core.logger import logger
+from app.services.quality_service import calculate_quality_score
+from app.services.anomaly_service import detect_anomalies
 import uuid
+import io
+import json
+import pandas as pd 
+
 
 router = APIRouter()
 
@@ -14,18 +20,33 @@ def validate_csv(filename:str)->bool:
     return filename.endswith(".csv")
 
 def process_csv(job_id,s3_key,db:Session):
+    job = None
     try:
         job = db.query(Job).filter(Job.id == job_id).first()
         if job:
             job.status = "Processing"
             db.commit()
         
-        # TODO code
+        file_bytes = download_file(s3_key)
+        df = pd.read_csv(io.BytesIO(file_bytes))
+        quality_data = calculate_quality_score(df)
+        anomaly_data = detect_anomalies(df)
+
+        result = Result(
+            id = f"result_{uuid.uuid4().hex[:12]}",
+            job_id = job_id,
+            quality_score  = quality_data["overall"],
+            quality_detail = json.dumps(quality_data),
+            anomaly_report = json.dumps(anomaly_data)
+        )
+        db.add(result)
+        db.commit()
 
         job.status = "completed"
         db.commit()
         return job
     except Exception as e:
+        db.rollback()
         logger.error(f"Background job failed: {str(e)}")
         if job:
             job.status = "failed"
@@ -39,6 +60,7 @@ def process_csv(job_id,s3_key,db:Session):
 async def upload(background_tasks: BackgroundTasks,file:UploadFile = File(...),db:Session = Depends(get_db)):
     name = file.filename
     type = file.content_type
+    job = None
     try:
         if validate_csv(name):
             content = await file.read()

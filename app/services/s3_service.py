@@ -51,7 +51,7 @@ def upload_file(file_bytes, filename, job_id):
         return False
 
 
-def download_file(s3_key ):
+def download_file(s3_key):
     try:
         response = s3_client.get_object(Bucket=BUCKET_NAME, Key=s3_key)
         file_bytes = response["Body"].read()

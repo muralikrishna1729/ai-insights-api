@@ -10,7 +10,8 @@ Job has:
 - created_at  (when job was created)
 """
 
-from sqlalchemy import Column, String, Integer, Text, DateTime
+from sqlalchemy import Column, String, Integer, Text, DateTime,ForeignKey
+from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.database import Base
 
@@ -21,5 +22,16 @@ class Job(Base):
     s3_key     = Column(String)
     status     = Column(String, default="pending")
     error_msg  = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    result = relationship("Result", back_populates="job", uselist=False)
+
+class Result(Base):
+    __tablename__ = "result"
+    id = Column(String, primary_key=True, index = True)
+    job_id = Column(String,ForeignKey("jobs.id"),nullable = False)
+    quality_score = Column(Integer, default=0)
+    quality_detail = Column(Text, nullable=True) 
+    anomaly_report = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 

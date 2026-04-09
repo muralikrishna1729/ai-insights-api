@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.db.database import engine,Base
 from app.routers.upload import router as upload_router
+from app.routers.results import router as result_router
 
 
 
@@ -27,6 +28,7 @@ app = FastAPI(
 )
 
 app.include_router(upload_router)
+app.include_router(result_router)
 
 @app.get("/")
 def root():
