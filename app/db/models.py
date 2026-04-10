@@ -32,6 +32,7 @@ class Result(Base):
     quality_score = Column(Integer, default=0)
     quality_detail = Column(Text, nullable=True) 
     anomaly_report = Column(Text, nullable=True)
+    ml_result = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)    
 
     job = relationship("Job", back_populates="result", lazy="select")

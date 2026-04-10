@@ -25,7 +25,8 @@ def get_results(job_id:str, db:Session = Depends(get_db)):
         "filename" : job.filename,
         "status"   : job.status,
         "quality"  : json.loads(result.quality_detail),
-        "anomalies": json.loads(result.anomaly_report)
+        "anomalies": json.loads(result.anomaly_report),
+        "ml_result" : json.loads(result.ml_result)
 }
 
 

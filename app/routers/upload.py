@@ -8,6 +8,7 @@ from app.services.s3_service import upload_file, download_file
 from app.core.logger import logger
 from app.services.quality_service import calculate_quality_score
 from app.services.anomaly_service import detect_anomalies
+from app.services.ml_service import run_ml_pipeline
 import uuid
 import io
 import json
@@ -29,6 +30,7 @@ def process_csv(job_id,s3_key,db:Session):
         
         file_bytes = download_file(s3_key)
         df = pd.read_csv(io.BytesIO(file_bytes))
+        ml_result = run_ml_pipeline(df)
         quality_data = calculate_quality_score(df)
         anomaly_data = detect_anomalies(df)
 
@@ -37,7 +39,8 @@ def process_csv(job_id,s3_key,db:Session):
             job_id = job_id,
             quality_score  = quality_data["overall"],
             quality_detail = json.dumps(quality_data),
-            anomaly_report = json.dumps(anomaly_data)
+            anomaly_report = json.dumps(anomaly_data),
+            ml_result = json.dumps(ml_result)
         )
         db.add(result)
         db.commit()
@@ -48,10 +51,12 @@ def process_csv(job_id,s3_key,db:Session):
     except Exception as e:
         db.rollback()
         logger.error(f"Background job failed: {str(e)}")
-        if job:
-            job.status = "failed"
-            job.error_msg = str(e)
-            db.commit()
+        if job_id:
+            job = db.query(Job).filter(Job.id == job_id).first()
+            if job:
+                job.status = "failed"
+                job.error_msg = str(e)
+                db.commit()
     finally:
         db.close()
 
