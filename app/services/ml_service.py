@@ -55,9 +55,7 @@ def run_ml_pipeline(df: pd.DataFrame) -> dict:
         dtype = df[target_column].dtype
     
         task_type = detect_task_type(df,target_column)
-        if task_type == "classification" and y.dtype == "object":
-            if unique_values > 50:
-                return {"error": "Target column has too many unique values — skipping ML"}
+        
         logger.info(f"Detected Task: {task_type}")
         df_clean,encoders = smart_preprocessing(df, target_column)
         X = df_clean.drop(columns = [target_column])
@@ -65,10 +63,12 @@ def run_ml_pipeline(df: pd.DataFrame) -> dict:
 
         if X.empty or len(X) < 10:
             return {"error": "Not enough data to train"}
-        X_train,X_test, y_train,y_test = train_test_split(X,y,test_size=0.2 ,random_state=42)
         if task_type == "classification" and y.dtype == "object":
             target_le = LabelEncoder()
-            y = target_le.fit_transform(y)
+            y = target_le.fit_transform(y.astype(str))
+            
+        X_train,X_test, y_train,y_test = train_test_split(X,y,test_size=0.2 ,random_state=42)
+    
 
         if task_type == "classification":
             models = {
